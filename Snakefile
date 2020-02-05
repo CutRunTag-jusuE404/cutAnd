@@ -12,7 +12,7 @@ def get_samples(dir):
     sdict = {s: glob.glob(f"{dir}/*{s}*") for s in samples}
     return sdict
 
-sampdict = get_samples("data/raw/test")
+sampdict = get_samples("data/raw")
 readpair=[[k+"_R1", k+"_R2"] for k in sampdict.keys()]
 reads=[v for s in readpair for v in s]
 
@@ -29,7 +29,7 @@ rule all:
 
 rule fastqc:
     input:
-        "data/raw/test/{read}.fastq.gz"
+        "data/raw/{read}.fastq.gz"
     output:
         html="data/fastqc/{read}.html",
 	zip="data/fastqc/{read}_fastqc.zip" 
@@ -69,7 +69,7 @@ rule sort:
         "envs/sam.yml"
     log: 
         "data/logs/sort_{sample}.log"
-    threads: 2
+    threads: 4
     shell:
         "sambamba sort {input} -t {threads} -o {output} > {log} 2>&1"
 
@@ -83,7 +83,7 @@ rule mrkdup:
         "envs/sam.yml"
     log:
         "data/logs/mrkdup_{sample}.log"
-    threads: 2
+    threads: 4
     shell:
         "sambamba markdup -t {threads} {input} {output} > {log} 2>&1"
 
@@ -97,7 +97,7 @@ rule index:
         "envs/sam.yml"
     log: 
         "data/logs/index_{sample}.log"
-    threads: 2
+    threads: 4
     shell:
         "sambamba index -t 2 {input} > {log} 2>&1"
 

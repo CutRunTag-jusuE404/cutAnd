@@ -47,7 +47,6 @@ rule bowtie2:
     output:
         "data/aligned/{sample}.bam"
     log:
-        out="data/logs/bowtie2_{sample}.log",
         err="data/logs/bowtie2_{sample}.err"
     conda:
         "envs/align.yml"
@@ -57,7 +56,7 @@ rule bowtie2:
         "--no-unal --no-mixed --threads {threads} "
         "--no-discordant --phred33 "
         "-I 10 -X 700 -x {config[GENOME_IDX]} "
-        "-1 {input[0]} -2 {input[1]} 2>{log.err} | tee {log.out} | samtools view -Sbh - > {output}"
+        "-1 {input[0]} -2 {input[1]} 2>{log.err} | samtools view -Sbh - > {output}"
 
 # sort
 rule sort:
@@ -69,9 +68,9 @@ rule sort:
         "envs/sam.yml"
     log: 
         "data/logs/sort_{sample}.log"
-    threads: 4
+    threads: 8 
     shell:
-        "sambamba sort {input} -t {threads} -o {output} > {log} 2>&1"
+        "samtools sort -T {wildcards.sample} -@ {threads} -o {output} {input} > {log} 2>&1"
 
 # mark pcr duplicates
 rule mrkdup:

@@ -2,7 +2,7 @@ __default__:
     memory: "20G"
     threads: 2
     partition: "exacloud"
-    time: "24:30:00"
+    time: 14400 
 bowtie2:
     threads: 8
-
+    time: 86400 

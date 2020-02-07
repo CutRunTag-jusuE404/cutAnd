@@ -57,7 +57,7 @@ __default__:
 bowtie2:
     threads: 8
     time: 86400
-``
+```
 
 Steps:
     Fastqc

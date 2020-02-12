@@ -7,14 +7,24 @@ configfile: "src/config.yml"
 
 # map samples to fastqs
 def get_samples(dir):
-    '''Matches samples to their fastq files.'''
+    '''
+    Matches samples to their fastq files.
+    Assumes fastq files are paried end, must have R1, R2 in filename.
+    '''
+
+    # fetch samples from config file
     samples = config["SAMPLES"]
-    sdict = {s: glob.glob(f"{dir}/*{s}*") for s in samples}
+
+    # create dict of sample names, and their associated files ensuring read order
+    sdict = {s: [glob.glob(f"{dir}/{s}*R1*")[0], glob.glob(f"{dir}/{s}*R2*")[0]] for s in samples}
     return sdict
 
 sampdict = get_samples("data/raw")
-readpair=[[k+"_R1", k+"_R2"] for k in sampdict.keys()]
-reads=[v for s in readpair for v in s]
+length_dict = {key: len(value) for key, value in sampdict.items()}
+print(length_dict)
+
+# get filenames without basename or extension for fastqc
+reads=[os.path.basename(v).replace(".fastq.gz", "") for s in sampdict.values() for v in s]
 
 # define target output
 rule all:
@@ -45,12 +55,12 @@ rule bowtie2:
     input:
         lambda wildcards: sampdict[wildcards.sample]
     output:
-        "data/aligned/{sample}.bam"
+        temp("data/aligned/{sample}.bam")
     log:
         err="data/logs/bowtie2_{sample}.err"
     conda:
         "envs/align.yml"
-    threads: 8
+    threads: 8 
     shell:
         "bowtie2 --local --very-sensitive-local "
         "--no-unal --no-mixed --threads {threads} "
